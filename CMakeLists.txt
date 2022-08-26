@@ -31,11 +31,17 @@ include(FetchContent)
 FetchContent_Declare(raygui URL https://github.com/raysan5/raygui/archive/refs/tags/3.2.zip)
 FetchContent_MakeAvailable(raygui)
 
+message(STATUS "Downloading yaml-cpp library")
+include(FetchContent)
+FetchContent_Declare(yaml-cpp URL https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.zip)
+FetchContent_MakeAvailable(yaml-cpp)
+
+
 ######## main configuration ########
 project(${PROJECT_NAME} VERSION 1.0)
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${VENDOR_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE "src" ${VENDOR_INCLUDE} "${raygui_SOURCE_DIR}/src")
-target_link_libraries(${PROJECT_NAME} PUBLIC raylib)
+target_link_libraries(${PROJECT_NAME} PUBLIC raylib yaml-cpp)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resource/")
 #target_compile_definitions(${PROJECT_NAME} PUBLIC RESOURCE_PATH="./resource/")

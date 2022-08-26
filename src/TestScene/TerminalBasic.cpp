@@ -4,8 +4,8 @@
 #include <sstream>
 
 #include "TestScene/TestScene.hpp"
+#include "utils/Config.hpp"
 #include "utils/Terminal.hpp"
-#include "Global.hpp"
 
 namespace {
     TerminalFont tmf;
@@ -22,8 +22,8 @@ namespace {
 }
 
 TerminalBasic::TerminalBasic() {
-    tmf = LoadTerminalFont(RESOURCE_PATH"VGA9x16.png", 16);
-    term = LoadTerminal(SCREEN_SIZE.x, SCREEN_SIZE.y, tmf);
+    tmf = LoadTerminalFont((RESOURCE_PATH + Config::FONT_FILE).c_str(), Config::FONT_ROW, Config::FONT_SIZE.x, Config::FONT_SIZE.y);
+    term = LoadTerminal(Config::CANVAS_SIZE.x, Config::CANVAS_SIZE.y, tmf);
     
     TerminalClear(term, {0xfa, GRAY, BLACK});
 }
@@ -39,8 +39,8 @@ void TerminalBasic::update() {
         {0.0f, 0.0f}, WHITE);
 
     // cursor
-    DrawRectangleLines((int)cursor.x*FONT_SIZE.x, (int)cursor.y*FONT_SIZE.y, FONT_SIZE.x, FONT_SIZE.y, ORANGE);
-    DrawLine(indexLine*FONT_SIZE.x, 0, indexLine*FONT_SIZE.x, GetScreenWidth(), ColorAlpha(ORANGE, colorAlpha));
+    DrawRectangleLines((int)cursor.x*Config::FONT_SIZE.x, (int)cursor.y*Config::FONT_SIZE.y, Config::FONT_SIZE.x, Config::FONT_SIZE.y, ORANGE);
+    DrawLine(indexLine*Config::FONT_SIZE.x, 0, indexLine*Config::FONT_SIZE.x, GetScreenWidth(), ColorAlpha(ORANGE, colorAlpha));
     if (colorAlpha > 0) colorAlpha -= GetFrameTime()*2;
     if (colorAlpha < 0) colorAlpha = 0.0f;
 
@@ -131,16 +131,14 @@ void TerminalBasic::cursorInput(int keycode) {
         TerminalDrawXY(term, cursor, {' ', WHITE, BLACK});
         moveCursor(-1, 0);
         break;
+
+        case KEY_F1:
+        Image img = LoadImageFromTexture(term.buffer.texture);
+        ImageFlipVertical(&img);
+        ExportImage(img, "./export.png");
+        UnloadImage(img);
+        break;
     }
-
-    // if (IsKeyDown(KEY_TAB)) colorAlpha = 1.0f;
-
-    // if (IsKeyDown(KEY_F1)) {
-    //     Image img = LoadImageFromTexture(term.buffer.texture);
-    //     ImageFlipVertical(&img);
-    //     ExportImage(img, "./export.png");
-    //     UnloadImage(img);
-    // }
 }
 
 void TerminalBasic::characterInput(int unicode) {

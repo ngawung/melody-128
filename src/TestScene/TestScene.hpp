@@ -14,3 +14,9 @@ private:
     void cursorInput(int keycode);
     void characterInput(int unicode);
 };
+
+class ConfigLoader : public melody::Scene {
+public:
+    ConfigLoader();
+    void update() override;
+};

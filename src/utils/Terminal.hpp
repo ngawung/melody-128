@@ -5,7 +5,9 @@
 #include <raylib.h>
 
 struct TerminalFont {
-    uint16_t row;
+    int row;
+    int width;
+    int height;
     Texture2D texture;
 };
 
@@ -29,16 +31,16 @@ struct Glyph {
 
 struct Terminal {
     TerminalFont tmf;
-    uint16_t width;
-    uint16_t height;
+    int width;
+    int height;
     std::unique_ptr<Glyph[]> chars;
     RenderTexture buffer;
 };
 
-TerminalFont LoadTerminalFont(const char * file, uint16_t row);
+TerminalFont LoadTerminalFont(const char * file, int row, int width, int height);
 void UnloadTerminalFont(const TerminalFont &tmf);
 
-Terminal LoadTerminal(uint16_t width, uint16_t height, TerminalFont tmf);
+Terminal LoadTerminal(int width, int height, TerminalFont tmf);
 void UnloadTerminal(const Terminal &term);
 
 Glyph *GetTerminalXY(const Terminal &term, int x, int y);

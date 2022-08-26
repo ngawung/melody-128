@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "utils/Terminal.hpp"
-#include "Global.hpp"
 
 /* Function that returns -1,0,1 depending on whether x */
 /* is <0, =0, >0 respectively */
@@ -11,13 +10,13 @@
 #define x_off x - cx
 #define y_off y - cy
 
-TerminalFont LoadTerminalFont(const char * file, uint16_t row) {
+TerminalFont LoadTerminalFont(const char * file, int row, int width, int height) {
     Image img = LoadImage(file);
     ImageFormat(&img, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     Color *color = LoadImageColors(img);
     ImageColorReplace(&img, color[0], ColorAlpha(BLACK, 0));
     
-    TerminalFont tmf = {row, LoadTextureFromImage(img)};
+    TerminalFont tmf = {row, width, height, LoadTextureFromImage(img)};
 
     UnloadImageColors(color);
     UnloadImage(img);
@@ -29,11 +28,11 @@ void UnloadTerminalFont(const TerminalFont &tmf) {
     UnloadTexture(tmf.texture);
 }
 
-Terminal LoadTerminal(uint16_t width, uint16_t height, TerminalFont tmf) {
+Terminal LoadTerminal(int width, int height, TerminalFont tmf) {
     return {
         tmf, width, height,
         std::make_unique<Glyph[]>(width*height*sizeof(Glyph)),
-        LoadRenderTexture(width*FONT_SIZE.x, height*FONT_SIZE.y)
+        LoadRenderTexture(width*tmf.width, height*tmf.height)
     };
 }
 
@@ -48,18 +47,18 @@ void TerminalRedraw(const Terminal &term) {
     for (int y=0; y<term.height; y++) {
         for (int x=0; x<term.width; x++) {
 
-            Vector2 pos = {x*FONT_SIZE.x, y*FONT_SIZE.y};
+            Vector2 pos = {(float)x*term.tmf.width, (float)y*term.tmf.height};
             Glyph g = term.chars[term.width*y + x];
 
-            DrawRectangle(pos.x, pos.y, FONT_SIZE.x, FONT_SIZE.y, g.background);
+            DrawRectangle(pos.x, pos.y, term.tmf.width, term.tmf.height, g.background);
 
             if (g.symbol != ' ') {
                 DrawTextureRec(
                     term.tmf.texture,
                     {
-                        (g.symbol % 16)*FONT_SIZE.x,
-                        (g.symbol / 16)*FONT_SIZE.y,
-                        FONT_SIZE.x, FONT_SIZE.y
+                        (float)(g.symbol % 16)*term.tmf.width,
+                        (float)(g.symbol / 16)*term.tmf.height,
+                        (float)term.tmf.width, (float)term.tmf.height
                     },
                     pos, g.foreground);
             }
@@ -90,17 +89,17 @@ void TerminalDrawXY(const Terminal &term, int x, int y, Glyph g) {
         term.chars[(int)(term.width*y + x)] = g;
 
         BeginTextureMode(term.buffer);
-        Vector2 pos = {x*FONT_SIZE.x, y*FONT_SIZE.y};
+        Vector2 pos = {(float)x*term.tmf.width, (float)y*term.tmf.height};
         
-        DrawRectangle(pos.x, pos.y, FONT_SIZE.x, FONT_SIZE.y, g.background);
+        DrawRectangle(pos.x, pos.y, term.tmf.width, term.tmf.height, g.background);
 
         if (g.symbol != ' ') {
             DrawTextureRec(
                 term.tmf.texture,
                 {
-                    (g.symbol % 16)*FONT_SIZE.x,
-                    (g.symbol / 16)*FONT_SIZE.y,
-                    FONT_SIZE.x, FONT_SIZE.y
+                    (float)(g.symbol % 16)*term.tmf.width,
+                    (float)(g.symbol / 16)*term.tmf.height,
+                    (float)term.tmf.width, (float)term.tmf.height
                 },
                 pos, g.foreground);
         }
@@ -173,14 +172,14 @@ void TerminalDrawCircle(const Terminal &term, int xc, int yc, int r, Glyph g) {
     Vector2 last_pos;
 
     for (int i=0; i<=360; i+=10) {
-        Vector2 pos = {(float)std::sin(i*DEG2RAD)*r + xc*FONT_SIZE.x, (float)std::cos(i*DEG2RAD)*r + yc*FONT_SIZE.y};
+        Vector2 pos = {(float)std::sin(i*DEG2RAD)*r + xc*term.tmf.width, (float)std::cos(i*DEG2RAD)*r + yc*term.tmf.height};
 
         if (i==0) {
             last_pos = pos;
             continue;
         }
 
-        TerminalDrawLine(term, last_pos.x/FONT_SIZE.x, last_pos.y/FONT_SIZE.y, pos.x/FONT_SIZE.x, pos.y/FONT_SIZE.y, g);
+        TerminalDrawLine(term, last_pos.x/term.tmf.width, last_pos.y/term.tmf.height, pos.x/term.tmf.width, pos.y/term.tmf.height, g);
         last_pos = pos;
     }
 }
