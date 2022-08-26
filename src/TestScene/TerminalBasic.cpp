@@ -1,6 +1,7 @@
 #include <raylib.h>
 #include <iostream>
 #include <cmath>
+#include <sstream>
 
 #include "TestScene/TestScene.hpp"
 #include "utils/Terminal.hpp"
@@ -12,73 +13,163 @@ namespace {
 
     Vector2 start = {0.0f, 0.0f};
     Vector2 end = {0.0f, 0.0f};
+    Vector2 cursor = {0.0f, 0.0f};
+    int indexLine = 0;
+    
+    float pressCounter = 0;
+    float pressDelay = 0;
+    float colorAlpha = 0.0f;
 }
 
 TerminalBasic::TerminalBasic() {
     tmf = LoadTerminalFont(RESOURCE_PATH"VGA9x16.png", 16);
     term = LoadTerminal(SCREEN_SIZE.x, SCREEN_SIZE.y, tmf);
     
-    TerminalClear(term, {'.', GRAY, BLACK});
-    TerminalDrawXY(term, 10, 10, {'(', WHITE, BLACK});
-    TerminalDrawXY(term, 11, 10, {'_', WHITE, BLACK});
-    TerminalDrawXY(term, 11, 9, {'_', WHITE, BLACK});
-    TerminalDrawXY(term, 12, 10, {')', WHITE, BLACK});
-    ValidateTerminal(term);
-
-    std::cout << sizeof(Glyph) << "\n";
-
-
-    std::unique_ptr<Glyph> test {new Glyph[term.width]};
-    test.release();
+    TerminalClear(term, {0xfa, GRAY, BLACK});
 }
 
 void TerminalBasic::update() {
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
+    // terminal buffer
     DrawTextureRec(
         term.buffer.texture,
         {0.0f, 0.0f, (float)term.buffer.texture.width, -1.0f*term.buffer.texture.height},
         {0.0f, 0.0f}, WHITE);
 
+    // cursor
+    DrawRectangleLines((int)cursor.x*FONT_SIZE.x, (int)cursor.y*FONT_SIZE.y, FONT_SIZE.x, FONT_SIZE.y, ORANGE);
+    DrawLine(indexLine*FONT_SIZE.x, 0, indexLine*FONT_SIZE.x, GetScreenWidth(), ColorAlpha(ORANGE, colorAlpha));
+    if (colorAlpha > 0) colorAlpha -= GetFrameTime()*2;
+    if (colorAlpha < 0) colorAlpha = 0.0f;
+
+    std::stringstream oss;
+    oss << pressCounter << "\n"
+        << GetKeyPressed() << "\n";
+    DrawText(oss.str().c_str(), 5, 5, 12, WHITE);
+
     DrawFPS(GetScreenWidth() - 100, 0);
     EndDrawing();
 
+    cursorInput(GetKeyPressed());
+    characterInput(GetCharPressed());
+}
+
+void TerminalBasic::cursorInput(int keycode) {
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
-        start = GetScreenToTerm(GetMousePosition());
-        TerminalClear(term, {'K', BLACK, RED});
-        TerminalDrawLine(term, start, end, {0x01, WHITE, BLACK});
-        ValidateTerminal(term);
+        cursor = GetScreenToTerm(GetMousePosition());
+        indexLine = cursor.x;
+        colorAlpha = 1.0f;
     }
 
-    else if (IsMouseButtonReleased(MOUSE_RIGHT_BUTTON)) {
-        // end = GetScreenToTerm(GetMousePosition());
-        TerminalClear(term, {'.', GRAY, BLACK});
-        // TerminalDrawLine(term, start, end, {0x01, WHITE, BLACK});
-        ValidateTerminal(term);
+    right_press = IsKeyDown(KEY_RIGHT);
+    left_press = IsKeyDown(KEY_LEFT);
+    up_press = IsKeyDown(KEY_UP);
+    down_press = IsKeyDown(KEY_DOWN);
+    back_press = IsKeyDown(KEY_BACKSPACE);
+
+    // held
+    if (right_press || left_press || up_press || down_press || back_press) {
+        pressCounter += GetFrameTime();
+        if (pressCounter >= 0.3) pressDelay += GetFrameTime();
+
+        if (pressDelay >= 0.05) {
+            pressDelay = 0;
+            if (right_press) moveCursor(1.0f, 0);
+            if (left_press) moveCursor(-1.0f, 0);
+            if (up_press) moveCursor(0, -1.0f);
+            if (down_press) moveCursor(0, 1.0f);
+            if (back_press) {
+                TerminalDrawXY(term, cursor, {' ', WHITE, BLACK});
+                moveCursor(-1, 0);
+            }
+        }
     }
 
-    if (IsMouseButtonReleased(MOUSE_MIDDLE_BUTTON)) {
-        // TerminalClear(term, {'K', BLACK, RED});
-        
-        Vector2 pos = GetScreenToTerm(GetMousePosition());
-        TerminalDrawCircle(term, pos, 70, {0x01, WHITE, BLACK});
-        ValidateTerminal(term);
+    // release
+    if (IsKeyReleased(KEY_RIGHT) || 
+        IsKeyReleased(KEY_LEFT) || 
+        IsKeyReleased(KEY_UP) || 
+        IsKeyReleased(KEY_DOWN) ||
+        IsKeyReleased(KEY_BACKSPACE))
+        pressCounter = pressDelay = 0;
+
+    // reset
+    right_press = left_press = up_press = down_press = back_press = false;
+
+    // down
+    if (keycode == 0) return;
+    switch(keycode) {
+        case KEY_LEFT:
+        moveCursor(-1, 0);
+        break;
+
+        case KEY_RIGHT:
+        moveCursor(1, 0);
+        break;
+
+        case KEY_UP:
+        moveCursor(0, -1);
+        break;
+
+        case KEY_DOWN:
+        moveCursor(0, 1);
+        break;
+
+        case KEY_ENTER:
+        moveCursor(0, 1.0f);
+        cursor.x = indexLine;
+        colorAlpha = 1.0f;
+        break;
+
+        case KEY_DELETE:
+        TerminalClear(term, {0xfa, GRAY, BLACK});
+        break;
+
+        case KEY_BACKSPACE:
+        TerminalDrawXY(term, cursor, {' ', WHITE, BLACK});
+        moveCursor(-1, 0);
+        break;
     }
 
-    if (IsKeyReleased(KEY_SPACE)) {
-        // TerminalClear(term, {'K', BLACK, RED});
+    // if (IsKeyDown(KEY_TAB)) colorAlpha = 1.0f;
 
-        Vector2 pos = GetScreenToTerm(GetMousePosition());
-        TerminalDrawRect(term, {pos.x - 8, pos.y - 5, 16, 10}, {0x01, WHITE, BLACK});
-        ValidateTerminal(term);
+    // if (IsKeyDown(KEY_F1)) {
+    //     Image img = LoadImageFromTexture(term.buffer.texture);
+    //     ImageFlipVertical(&img);
+    //     ExportImage(img, "./export.png");
+    //     UnloadImage(img);
+    // }
+}
+
+void TerminalBasic::characterInput(int unicode) {
+    if (unicode == 0) return;
+    
+    TerminalDrawXY(term, cursor, {(uint8_t)unicode, WHITE, BLACK});
+    moveCursor(1, 0);
+    colorAlpha = 1.0f;
+}
+
+void TerminalBasic::moveCursor(int x, int y) {
+    cursor.x += x;
+    cursor.y += y;
+
+    if (cursor.x > term.width-1) {
+        cursor.y++;
+        cursor.x = indexLine;
+    } 
+
+    else if (cursor.x < 0) {
+        cursor.y--;
+        cursor.x = term.width-1;
     }
 
-    if (IsKeyReleased(KEY_ENTER)) {
-        // TerminalClear(term, {'K', BLACK, RED});
+    if (cursor.y > term.height-1) {
+        cursor.y = 0;
+    }
 
-        Vector2 pos = GetScreenToTerm(GetMousePosition());
-        TerminalFill4(term, pos.x, pos.y, {'A', WHITE, BLACK});
-        ValidateTerminal(term);
+    else if (cursor.y < 0) {
+        cursor.y = term.height-1;
     }
 }

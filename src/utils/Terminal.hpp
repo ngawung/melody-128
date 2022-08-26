@@ -43,7 +43,7 @@ void UnloadTerminal(const Terminal &term);
 
 Glyph *GetTerminalXY(const Terminal &term, int x, int y);
 
-void ValidateTerminal(const Terminal &term);
+void TerminalRedraw(const Terminal &term);
 void TerminalClear(const Terminal &term, Glyph g);
 
 void TerminalDrawXY(const Terminal &term, int x, int y, Glyph g);

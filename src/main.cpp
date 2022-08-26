@@ -2,6 +2,9 @@
 #include <raylib.h>
 #include <melody.hpp>
 
+#define RAYGUI_IMPLEMENTATION
+#include <raygui.h>
+
 #include "Global.hpp"
 #include "TestScene/TestScene.hpp"
 

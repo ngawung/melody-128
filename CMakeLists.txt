@@ -26,16 +26,16 @@ set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example g
 FetchContent_Declare(raylib URL https://github.com/raysan5/raylib/archive/refs/tags/4.2.0.zip)
 FetchContent_MakeAvailable(raylib)
 
-message(STATUS "Downloading pugixml library")
+message(STATUS "Downloading raygui library")
 include(FetchContent)
-FetchContent_Declare(pugixml URL https://github.com/zeux/pugixml/releases/download/v1.12.1/pugixml-1.12.1.zip)
-FetchContent_MakeAvailable(pugixml)
+FetchContent_Declare(raygui URL https://github.com/raysan5/raygui/archive/refs/tags/3.2.zip)
+FetchContent_MakeAvailable(raygui)
 
 ######## main configuration ########
 project(${PROJECT_NAME} VERSION 1.0)
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${VENDOR_SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE "src" ${VENDOR_INCLUDE})
-target_link_libraries(${PROJECT_NAME} PUBLIC raylib pugixml)
+target_include_directories(${PROJECT_NAME} PRIVATE "src" ${VENDOR_INCLUDE} "${raygui_SOURCE_DIR}/src")
+target_link_libraries(${PROJECT_NAME} PUBLIC raylib)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resource/")
 #target_compile_definitions(${PROJECT_NAME} PUBLIC RESOURCE_PATH="./resource/")

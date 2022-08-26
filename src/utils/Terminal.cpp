@@ -42,7 +42,7 @@ void UnloadTerminal(const Terminal &term) {
     UnloadRenderTexture(term.buffer);
 }
 
-void ValidateTerminal(const Terminal &term) {
+void TerminalRedraw(const Terminal &term) {
     BeginTextureMode(term.buffer);
 
     for (int y=0; y<term.height; y++) {
@@ -74,8 +74,10 @@ void TerminalClear(const Terminal &term, Glyph g) {
     for(int i=0; i<term.width*term.height; i++) {
         term.chars[i] = g;
     }
+    TerminalRedraw(term);
 }
 
+//  TODO: throw exception here
 Glyph *GetTerminalXY(const Terminal &term, int x, int y) {
     if (x >= 0 && x < term.width && y >= 0 && y < term.height)
         return &term.chars[(int)(term.width*y + x)];
@@ -84,8 +86,26 @@ Glyph *GetTerminalXY(const Terminal &term, int x, int y) {
 }
 
 void TerminalDrawXY(const Terminal &term, int x, int y, Glyph g) {
-    if (x >= 0 && x < term.width && y >= 0 && y < term.height)
+    if (x >= 0 && x < term.width && y >= 0 && y < term.height) {
         term.chars[(int)(term.width*y + x)] = g;
+
+        BeginTextureMode(term.buffer);
+        Vector2 pos = {x*FONT_SIZE.x, y*FONT_SIZE.y};
+        
+        DrawRectangle(pos.x, pos.y, FONT_SIZE.x, FONT_SIZE.y, g.background);
+
+        if (g.symbol != ' ') {
+            DrawTextureRec(
+                term.tmf.texture,
+                {
+                    (g.symbol % 16)*FONT_SIZE.x,
+                    (g.symbol / 16)*FONT_SIZE.y,
+                    FONT_SIZE.x, FONT_SIZE.y
+                },
+                pos, g.foreground);
+        }
+        EndTextureMode();
+    }
 }
 
 void TerminalDrawXY(const Terminal &term, Vector2 pos, Glyph g) {
