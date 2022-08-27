@@ -15,8 +15,14 @@ private:
     void characterInput(int unicode);
 };
 
-class ConfigLoader : public melody::Scene {
+class UILayout : public melody::Scene {
 public:
-    ConfigLoader();
+    UILayout();
+    void update() override;
+};
+
+class CamNavigation : public melody::Scene {
+public:
+    CamNavigation();
     void update() override;
 };

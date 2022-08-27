@@ -60,6 +60,9 @@ void TerminalDrawCircle(const Terminal &term, Vector2 pos, int r, Glyph g);
 void TerminalDrawRect(const Terminal &term, int x, int y, int w, int h, Glyph g);
 void TerminalDrawRect(const Terminal &term, Rectangle rect, Glyph g);
 
+void TerminalDrawText(const Terminal &term, int x, int y, std::string str, Color fg, Color bg);
+void TerminalDrawText(const Terminal &term, Vector2 pos, std::string str, Color fg, Color bg);
+
 void TerminalFill4(const Terminal &term, int x, int y, Glyph g, Glyph boundary);
 void TerminalFill4(const Terminal &term, int x, int y, Glyph g);
 void TerminalFill4(const Terminal &term, Vector2 pos, Glyph g);

@@ -21,3 +21,5 @@ Vector2 Config::CANVAS_SIZE = {
     config["canvas"]["width"].as<float>(),
     config["canvas"]["height"].as<float>()
 };
+
+Vector2 Config::WINDOW_SIZE = {80.0f, 35.0f};

@@ -36,11 +36,22 @@ include(FetchContent)
 FetchContent_Declare(yaml-cpp URL https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.zip)
 FetchContent_MakeAvailable(yaml-cpp)
 
+message(STATUS "Downloading imgui library")
+include(FetchContent)
+FetchContent_Declare(imgui URL https://github.com/ocornut/imgui/archive/refs/tags/v1.88.zip)
+FetchContent_MakeAvailable(imgui)
+file(GLOB imgui_SOURCES ${imgui_SOURCE_DIR}/*.cpp)
+
+message(STATUS "Downloading rlImGui library")
+include(FetchContent)
+FetchContent_Declare(rlimgui URL https://github.com/raylib-extras/rlImGui/archive/refs/heads/main.zip)
+FetchContent_MakeAvailable(rlimgui)
+file(GLOB rlImGui_SOURCES ${rlimgui_SOURCE_DIR}/*.cpp)
 
 ######## main configuration ########
 project(${PROJECT_NAME} VERSION 1.0)
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${VENDOR_SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE "src" ${VENDOR_INCLUDE} "${raygui_SOURCE_DIR}/src")
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${VENDOR_SOURCES} ${imgui_SOURCES} ${rlImGui_SOURCES})
+target_include_directories(${PROJECT_NAME} PRIVATE "src" ${VENDOR_INCLUDE} "${raygui_SOURCE_DIR}/src" ${imgui_SOURCE_DIR} ${rlimgui_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC raylib yaml-cpp)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resource/")
