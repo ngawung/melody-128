@@ -1,31 +1,41 @@
-#include <iostream>
-#include <raylib.h>
-#include <melody.hpp>
-
 #define RAYGUI_IMPLEMENTATION
 #define RAYMATH_IMPLEMENTATION
 
-#include <raymath.h>
-#include <raygui.h>
+#include <iostream>
+#include <raylib.h>
+#include <melody.hpp>
 #include <rlImGui.h>
 
+#include <raymath.h>
+#include <raygui.h>
+
 #include "utils/Config.hpp"
+#include "scene/MainEditor.hpp"
 #include "TestScene/TestScene.hpp"
 
 int main() {
 
-    // SetTargetFPS(60);
-    SetExitKey(0);
+    Config::LoadConfig(RESOURCE_PATH"config.ini");
+
     InitWindow(
         Config::FONT_SIZE.x * Config::WINDOW_SIZE.x, 
         Config::FONT_SIZE.y * Config::WINDOW_SIZE.y,
         "Melody-128");
+    
+    // SetTargetFPS(60);
+    SetExitKey(-1);
+    SetWindowState(
+        FLAG_VSYNC_HINT |
+        FLAG_WINDOW_RESIZABLE |
+        FLAG_MSAA_4X_HINT);
 
     rlImGuiSetup(true);
-    melody::App MainEngine;
-    MainEngine.start(new CamNavigation());
+    GuiLoadStyle(RESOURCE_PATH"default.rgs");
 
-    while(!WindowShouldClose()) {
+    melody::App MainEngine;
+    MainEngine.start(new MainEditor());
+
+    while(MainEngine.Running) {
         MainEngine.update();
         if (IsKeyReleased(KEY_F11)) ToggleFullscreen();
     }

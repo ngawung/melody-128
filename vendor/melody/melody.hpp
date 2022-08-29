@@ -16,6 +16,8 @@ namespace melody {
 			App();
 			~App();
 
+			bool Running;
+
 			void start(Scene* scene);
 			void update();
 

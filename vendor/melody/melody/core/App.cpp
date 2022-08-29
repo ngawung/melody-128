@@ -14,6 +14,8 @@ App::~App() {
 }
 
 void App::start(Scene* scene) {
+	Running = true;
+	
 	_currentScene = scene;
 	scene->initialize();
 }

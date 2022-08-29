@@ -26,3 +26,17 @@ public:
     CamNavigation();
     void update() override;
 };
+
+class ImGuiLayout : public melody::Scene {
+public:
+    ImGuiLayout();
+    ~ImGuiLayout();
+    void update() override;
+};
+
+class EpicGLFW : public melody::Scene {
+public:
+    EpicGLFW();
+    ~EpicGLFW();
+    void update() override;
+};

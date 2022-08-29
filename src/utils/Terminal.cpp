@@ -10,6 +10,39 @@
 #define x_off x - cx
 #define y_off y - cy
 
+namespace {
+    void drawXY(const Terminal &term, int x, int y, Glyph g) {
+        Vector2 pos = {(float)x*term.tmf.width, (float)y*term.tmf.height};
+        
+        DrawRectangle(pos.x, pos.y, term.tmf.width, term.tmf.height, g.background);
+
+        if (g.symbol != ' ') {
+            DrawTextureRec(
+                term.tmf.texture,
+                {
+                    (float)(g.symbol % 16)*term.tmf.width,
+                    (float)(g.symbol / 16)*term.tmf.height,
+                    (float)term.tmf.width, (float)term.tmf.height
+                },
+                pos, g.foreground);
+        }
+    }
+
+    void fill4(const Terminal &term, int x, int y, Glyph g, Glyph boundary) {
+        if (x >= 0 && x < term.width && y >= 0 && y < term.height) {
+            if(GetTerminalXY(term, x, y)->compare(boundary) &&
+               !GetTerminalXY(term, x, y)->compare(g))
+            {
+                drawXY(term, x, y, g);
+                fill4(term, x + 1, y, g, boundary);
+                fill4(term, x, y + 1, g, boundary);
+                fill4(term, x - 1, y, g, boundary);
+                fill4(term, x, y - 1, g, boundary);
+            }
+        }
+    }
+}
+
 TerminalFont LoadTerminalFont(const char * file, int row, int width, int height) {
     Image img = LoadImage(file);
     ImageFormat(&img, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
@@ -88,22 +121,9 @@ void TerminalDrawXY(const Terminal &term, int x, int y, Glyph g) {
     if (x >= 0 && x < term.width && y >= 0 && y < term.height) {
         term.chars[(int)(term.width*y + x)] = g;
 
-        // BeginTextureMode(term.buffer);
-        Vector2 pos = {(float)x*term.tmf.width, (float)y*term.tmf.height};
-        
-        DrawRectangle(pos.x, pos.y, term.tmf.width, term.tmf.height, g.background);
-
-        if (g.symbol != ' ') {
-            DrawTextureRec(
-                term.tmf.texture,
-                {
-                    (float)(g.symbol % 16)*term.tmf.width,
-                    (float)(g.symbol / 16)*term.tmf.height,
-                    (float)term.tmf.width, (float)term.tmf.height
-                },
-                pos, g.foreground);
-        }
-        // EndTextureMode();
+        BeginTextureMode(term.buffer);
+        drawXY(term, x, y, g);
+        EndTextureMode();
     }
 }
 
@@ -112,6 +132,8 @@ void TerminalDrawXY(const Terminal &term, Vector2 pos, Glyph g) {
 }
 
 void TerminalDrawLine(const Terminal &term, int x1, int y1, int x2, int y2, Glyph g) {
+    BeginTextureMode(term.buffer);
+
     int Dx = x2 - x1;
     int Dy = y2 - y1;
 
@@ -134,7 +156,7 @@ void TerminalDrawLine(const Terminal &term, int x1, int y1, int x2, int y2, Glyp
         //# Main loop
         for(int I=0; I<D; I++)
         {   
-            TerminalDrawXY(term, X, Y, g); 
+            drawXY(term, X, Y, g); 
             //# Update (X, Y) and R
             X+= Sx; R+= Dy; //# Lateral move
             if (R >= Dx)
@@ -149,7 +171,7 @@ void TerminalDrawLine(const Terminal &term, int x1, int y1, int x2, int y2, Glyp
         //# Main loop
         for(int I=0; I<D; I++)
         {   
-            TerminalDrawXY(term, X, Y, g);
+            drawXY(term, X, Y, g);
             // Set(X, Y, color);
             //# Update (X, Y) and R
             Y+= Sy; 
@@ -161,6 +183,8 @@ void TerminalDrawLine(const Terminal &term, int x1, int y1, int x2, int y2, Glyp
             }
         }
     }
+
+    EndTextureMode();
 }
 
 void TerminalDrawLine(const Terminal &term, Vector2 start, Vector2 end, Glyph g) {
@@ -201,10 +225,12 @@ void TerminalDrawRect(const Terminal &term, Rectangle rect, Glyph g) {
 
 void TerminalDrawText(const Terminal &term, int x, int y, std::string str, Color fg, Color bg) {
     int i = 0;
+    BeginTextureMode(term.buffer);
     for(const unsigned char &c : str) {
-        TerminalDrawXY(term, x+i, y, {c, fg, bg});
+        drawXY(term, x+i, y, {c, fg, bg});
         i++;
     }
+    EndTextureMode();
 }
 
 void TerminalDrawText(const Terminal &term, Vector2 pos, std::string str, Color fg, Color bg) {
@@ -212,17 +238,9 @@ void TerminalDrawText(const Terminal &term, Vector2 pos, std::string str, Color 
 }
 
 void TerminalFill4(const Terminal &term, int x, int y, Glyph g, Glyph boundary) {
-    if (x >= 0 && x < term.width && y >= 0 && y < term.height) {
-        if(GetTerminalXY(term, x, y)->compare(boundary) &&
-           !GetTerminalXY(term, x, y)->compare(g))
-        {
-            TerminalDrawXY(term, x, y, g);
-            TerminalFill4(term, x + 1, y, g, boundary);
-            TerminalFill4(term, x, y + 1, g, boundary);
-            TerminalFill4(term, x - 1, y, g, boundary);
-            TerminalFill4(term, x, y - 1, g, boundary);
-        }
-    }
+    BeginTextureMode(term.buffer);
+    fill4(term, x, y, g, boundary);
+    EndTextureMode();
 }
 
 void TerminalFill4(const Terminal &term, int x, int y, Glyph g) {

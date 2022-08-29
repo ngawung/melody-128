@@ -331,39 +331,39 @@ void CamNavigation::update() {
         // if (CheckCollisionPointRec(GetMousePosition(), {410.0f, 0.0f, 30.0f, 400.0f})) {
         // }
         
-        rlImGuiBegin();
-        {
+        // rlImGuiBegin();
+        // {
 
-            ImGui::Begin(
-                "Window", NULL, 
-                ImGuiWindowFlags_NoMove |
-                ImGuiWindowFlags_NoTitleBar |
-                ImGuiWindowFlags_NoCollapse |
-                ImGuiWindowFlags_NoResize |
-                ImGuiWindowFlags_NoSavedSettings |
-                ImGuiWindowFlags_AlwaysAutoResize);
+        //     ImGui::Begin(
+        //         "Window", NULL, 
+        //         ImGuiWindowFlags_NoMove |
+        //         ImGuiWindowFlags_NoTitleBar |
+        //         ImGuiWindowFlags_NoCollapse |
+        //         ImGuiWindowFlags_NoResize |
+        //         ImGuiWindowFlags_NoSavedSettings |
+        //         ImGuiWindowFlags_AlwaysAutoResize);
 
-            ImGui::SetWindowPos({100.0f, GetScreenHeight() - ImGui::GetWindowHeight() - 30}, ImGuiCond_Always);
+        //     ImGui::SetWindowPos({100.0f, GetScreenHeight() - ImGui::GetWindowHeight() - 30}, ImGuiCond_Always);
 
-            static float color[4] = { 1.0f,1.0f,1.0f,1.0f };
+        //     static float color[4] = { 1.0f,1.0f,1.0f,1.0f };
 
-            ImGui::ColorPicker4( 
-                "Color", (float*)&color,
-                ImGuiColorEditFlags_NoAlpha |
-                ImGuiColorEditFlags_NoDragDrop |
-                ImGuiColorEditFlags_NoLabel,
-                NULL);
+        //     ImGui::ColorPicker4( 
+        //         "Color", (float*)&color,
+        //         ImGuiColorEditFlags_NoAlpha |
+        //         ImGuiColorEditFlags_NoDragDrop |
+        //         ImGuiColorEditFlags_NoLabel,
+        //         NULL);
 
-            ImGui::Button("Apply");
-            ImGui::Button("Cancel");
+        //     ImGui::Button("Apply");
+        //     ImGui::Button("Cancel");
 
-            ImGui::End();
+        //     ImGui::End();
 
 
-            // ImGui::Render();
+        //     ImGui::ShowDemoWindow();
 
-        }
-        rlImGuiEnd();
+        // }
+        // rlImGuiEnd();
         
         if (enableFPS) DrawFPS(GetScreenWidth() - 100, 0);
     }
