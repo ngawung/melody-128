@@ -2,11 +2,11 @@
 
 #include <raylib.h>
 #include <imgui.h>
-#include <melody.hpp>
+#include <core/Scene.hpp>
 
 #include "utils/Terminal.hpp"
 
-class MainEditor : public melody::Scene {
+class MainEditor : public Scene {
 public:
     MainEditor();
     ~MainEditor();
@@ -80,9 +80,9 @@ private:
     void modLowercase();
     void modTrim();
     void modTrimSelect();
-    
+
     void viewOption();
-    
+
     void helpAbout();
     void helpShortcut();
 };

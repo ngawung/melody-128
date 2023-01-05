@@ -3,8 +3,11 @@
 #include <imgui.h>
 #include <rlImGui.h>
 #include <rlImGuiColors.h>
-#include <nfd.h>
 #include <fmt/core.h>
+
+#ifndef PLATFORM_WEB
+    #include <nfd.h>
+#endif
 
 #include "utils/Config.hpp"
 #include "scene/MainEditor.hpp"
@@ -136,9 +139,9 @@ void MainEditor::updateCursorNavigation() {
     }
 
     // onRelease
-    if (IsKeyReleased(KEY_RIGHT) || 
-        IsKeyReleased(KEY_LEFT) || 
-        IsKeyReleased(KEY_UP) || 
+    if (IsKeyReleased(KEY_RIGHT) ||
+        IsKeyReleased(KEY_LEFT) ||
+        IsKeyReleased(KEY_UP) ||
         IsKeyReleased(KEY_DOWN) ||
         IsKeyReleased(KEY_BACKSPACE))
         pressCounter = pressDelay = 0;
@@ -164,7 +167,7 @@ void MainEditor::updateCursorNavigation() {
 
 void MainEditor::onCharacterInput(int unicode) {
     if (unicode == 0) return;
-    
+
     TerminalDrawXY(term, cursor, {(uint8_t)unicode, Vec2Col(p1), Vec2Col(p2)});
     MoveCursor(1, 0);
     colorAlpha = 1.0f;
@@ -183,10 +186,10 @@ void MainEditor::render()
         {
             DrawRenderTexture(term.buffer.texture, Vector2{0.0f, 0.0f});
             // DrawRenderTexture(termOverlay.buffer.texture);
-            
+
             // boundary
             DrawRectangleLines(
-                -1, -1, 
+                -1, -1,
                 term.buffer.texture.width+2, term.buffer.texture.height+2,
                 ORANGE);
 
@@ -241,7 +244,7 @@ void MainEditor::handleImGui()
 
         guiMainMenu();
         fileNew();
-        
+
         guiStatus();
 
     }
@@ -336,7 +339,7 @@ void MainEditor::guiMainMenu()
 
 void MainEditor::guiStatus()
 {
-    ImGuiWindowFlags flag = 
+    ImGuiWindowFlags flag =
         ImGuiWindowFlags_NoDecoration |
         ImGuiWindowFlags_NoSavedSettings |
         ImGuiWindowFlags_NoFocusOnAppearing |
@@ -377,7 +380,7 @@ void MainEditor::guiStatus()
         ImGui::Separator();
         ImGui::ColorPicker3("BackgroundPicker", (float*)&p2,
             ImGuiColorEditFlags_NoSmallPreview |
-            ImGuiColorEditFlags_NoLabel | 
+            ImGuiColorEditFlags_NoLabel |
             ImGuiColorEditFlags_NoSidePreview);
 
         ImGui::SameLine();
@@ -393,7 +396,7 @@ void MainEditor::guiStatus()
         ImGui::BeginGroup();
         ImGui::Text("Palette");
         // for (int n = 0; n < 30; n++)
-        // {   
+        // {
         //     if ((n % 5) != 0) ImGui::SameLine();
         //     ImGui::ColorButton("pallete", bg, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf, ImVec2(20, 20));
         // }
@@ -444,7 +447,7 @@ void MainEditor::MoveCursor(int x, int y)
     if (cursor.x > term.width-1) {
         cursor.y++;
         cursor.x = cursorIndex;
-    } 
+    }
 
     else if (cursor.x < 0) {
         cursor.y--;
@@ -490,6 +493,7 @@ void MainEditor::fileNew() {
 
 void MainEditor::fileOpen()
 {
+#ifndef PLATFORM_WEB
     NFD_Init();
 
     nfdchar_t *outPath;
@@ -506,17 +510,19 @@ void MainEditor::fileOpen()
     {
         puts("User pressed cancel.");
     }
-    else 
+    else
     {
         printf("Error: %s\n", NFD_GetError());
     }
 
     NFD_Quit();
+#endif
 }
 
 void MainEditor::fileSave() {}
 void MainEditor::fileSaveAs()
 {
+#ifndef PLATFORM_WEB
     NFD_Init();
 
     nfdchar_t *outPath;
@@ -533,16 +539,18 @@ void MainEditor::fileSaveAs()
     {
         puts("User pressed cancel.");
     }
-    else 
+    else
     {
         printf("Error: %s\n", NFD_GetError());
     }
 
     NFD_Quit();
+#endif
 }
 
 void MainEditor::fileExport()
 {
+#ifndef PLATFORM_WEB
     NFD_Init();
 
     nfdchar_t *outPath;
@@ -560,19 +568,20 @@ void MainEditor::fileExport()
     }
     else if (result == NFD_CANCEL)
     {
-        
+
     }
-    else 
+    else
     {
         printf("Error: %s\n", NFD_GetError());
     }
 
     NFD_Quit();
+#endif
 }
 
 void MainEditor::exitProgram()
 {
-    melody::App::get_instance()->Running = false;
+    // melody::App::get_instance()->Running = false;
 }
 
 void MainEditor::editUndo() {}

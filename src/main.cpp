@@ -1,27 +1,28 @@
 #define RAYGUI_IMPLEMENTATION
 #define RAYMATH_IMPLEMENTATION
 
-#include <iostream>
 #include <raylib.h>
-#include <melody.hpp>
 #include <rlImGui.h>
-
 #include <raymath.h>
 #include <raygui.h>
 
+#include "core/App.hpp"
 #include "utils/Config.hpp"
 #include "scene/MainEditor.hpp"
-#include "TestScene/TestScene.hpp"
 
-int main() {
+#if defined(PLATFORM_WEB)
+    #include <emscripten/emscripten.h>
+#endif
+
+void mainLoop(void);
+
+int main()
+{
 
     Config::LoadConfig(RESOURCE_PATH"config.ini");
 
-    InitWindow(
-        Config::FONT_SIZE.x * Config::WINDOW_SIZE.x, 
-        Config::FONT_SIZE.y * Config::WINDOW_SIZE.y,
-        "Melody-128");
-    
+    InitWindow(960, 600, "Melody-128");
+
     // SetTargetFPS(60);
     SetExitKey(-1);
     SetWindowState(
@@ -32,16 +33,27 @@ int main() {
     rlImGuiSetup(true);
     GuiLoadStyle(RESOURCE_PATH"default.rgs");
 
-    melody::App MainEngine;
-    MainEngine.start(new MainEditor());
+    App::getInstance().setScene(std::make_shared<MainEditor>());
 
-    while(MainEngine.Running) {
-        MainEngine.update();
-        if (IsKeyReleased(KEY_F11)) ToggleFullscreen();
-    }
+#if defined(PLATFORM_WEB)
+    emscripten_set_main_loop(mainLoop, 0, 1);
+#else
+    SetTargetFPS(60);
+    mainLoop();
+#endif
 
     rlImGuiShutdown();
+    CloseWindow();
     return 0;
+}
+
+void mainLoop(void)
+{
+    App &instance = App::getInstance();
+    while(!WindowShouldClose()) {
+        instance.update();
+        if (IsKeyReleased(KEY_F11)) ToggleFullscreen();
+    }
 }
 
 Vector2 GetTermToScreen(Vector2 pos) {
